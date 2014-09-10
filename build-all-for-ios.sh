@@ -28,6 +28,7 @@ unset OPENSSLDIR
 
 rm -rf openssl-ios/
 rm -rf i386/
+rm -rf x86_64/
 rm -rf armv7/
 rm -rf armv7s/
 rm -rf arm64/
@@ -36,6 +37,19 @@ rm -rf arm64/
 # Second, build i386
 echo "****************************************"
 THIS_ARCH=i386
+unset CROSS_ARCH
+
+. ./setenv-ios-$THIS_ARCH.sh
+./config -no-ssl2 -no-ssl3 -no-asm -no-shared -no-hw -no-engine --openssldir=$IOS_INSTALLDIR
+make clean 2>&1>/dev/null && make all
+mkdir $THIS_ARCH
+\cp ./libcrypto.a $THIS_ARCH/libcrypto.a
+\cp ./libssl.a $THIS_ARCH/libssl.a
+
+################################################################
+# Second, build x86_64
+echo "****************************************"
+THIS_ARCH=x86_64
 unset CROSS_ARCH
 
 . ./setenv-ios-$THIS_ARCH.sh
@@ -87,8 +101,8 @@ mkdir $THIS_ARCH
 ################################################################
 # Sixth, create the fat library
 echo "****************************************"
-lipo -create armv7/libcrypto.a armv7s/libcrypto.a arm64/libcrypto.a i386/libcrypto.a -output ./libcrypto.a
-lipo -create armv7/libssl.a armv7s/libssl.a arm64/libssl.a i386/libssl.a -output ./libssl.a
+lipo -create armv7/libcrypto.a armv7s/libcrypto.a arm64/libcrypto.a i386/libcrypto.a x86_64/libcrypto.a -output ./libcrypto.a
+lipo -create armv7/libssl.a armv7s/libssl.a arm64/libssl.a i386/libssl.a x86_64/libssl.a -output ./libssl.a
 
 ################################################################
 # Seventh, verify the three architectures are present
@@ -125,6 +139,7 @@ tar czf openssl-1.0.1e-ios-7.0.tar.gz openssl-ios/
 # Eleventh, cleanup
 rm -rf openssl-ios/
 rm -rf i386/
+rm -rf x86_64/
 rm -rf armv7/
 rm -rf armv7s/
 rm -rf arm64/
